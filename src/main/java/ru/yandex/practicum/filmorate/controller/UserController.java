@@ -19,7 +19,7 @@ public class UserController {
 
     private final HashMap<Integer, User> users = new HashMap<>();
 
-    private final static Logger log = LoggerFactory.getLogger(UserController.class);
+    private final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @PostMapping
     public User create(@RequestBody User user) {
