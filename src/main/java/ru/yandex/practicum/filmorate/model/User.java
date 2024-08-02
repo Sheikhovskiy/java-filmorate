@@ -7,20 +7,19 @@ import lombok.Setter;
 import java.time.Instant;
 import java.time.LocalDate;
 
-/**
- * Film.
- */
+
 @Data
-public class Film {
+public class User {
 
     Integer id;
 
+    String email;
+
+    String login;
+
     String name;
 
-    String description;
+    LocalDate birthday;
 
-    LocalDate releaseDate;
-
-    Integer duration;
 
 }
