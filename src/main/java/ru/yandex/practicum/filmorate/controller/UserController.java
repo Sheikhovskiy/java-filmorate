@@ -67,6 +67,8 @@ public class UserController {
 
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
+        } else if (user.getName().contains(" ")) {
+            throw new ConditionsNotMetException("Логин не должен содержать пробелы !");
         }
         return true;
 
