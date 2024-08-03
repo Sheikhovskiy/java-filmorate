@@ -1,21 +1,38 @@
 package ru.yandex.practicum.filmorate.model;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+
 import java.time.LocalDate;
 
 
 @Data
+@Valid
+@NoArgsConstructor
 public class User {
 
-    Integer id;
+    private Integer id;
 
-    String email;
+    @NonNull
+    @NotEmpty
+    @Email
+    private String email;
 
-    String login;
+    @NonNull
+    @NotBlank
+    private String login;
 
-    String name;
+    private String name;
 
-    LocalDate birthday;
+    @NonNull
+    @PastOrPresent
+    private LocalDate birthday;
 
 
 }

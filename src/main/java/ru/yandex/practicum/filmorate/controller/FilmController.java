@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -13,42 +13,38 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
 
     private final Map<Integer, Film> films = new HashMap<>();
 
-    private final Logger log = LoggerFactory.getLogger(FilmController.class);
+    private Integer currentMaxFilmId = 0;
+
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final LocalDate minimalReleaseDate = LocalDate.parse("1895-12-28", dateTimeFormatter);
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
 
         if (isValid(film)) {
 
-//            if (film.getId() != null && films.containsKey(film.getId())) {
-//                throw new DuplicatedDataException("Фильм с id " + film.getId() + " уже существует !");
-//            }
-
             film.setId(getNextId());
-            films.put(getNextId(), film);
+            films.put(film.getId(), film);
             return film;
         }
         return film;
     }
 
     private Integer getNextId() {
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .max()
-                .orElse(0);
-        return Math.toIntExact(++currentMaxId);
+        currentMaxFilmId += 1;
+        return currentMaxFilmId;
     }
 
 
     @PutMapping
-    public Film update(@RequestBody Film newFilm) {
+    public Film update(@Valid @RequestBody Film newFilm) {
 
         if (isValid(newFilm)) {
 
@@ -69,7 +65,6 @@ public class FilmController {
             return oldFilm;
 
         }
-        System.out.println("Произошла ошибка при обновлении фильма, он не валидный");
         return newFilm;
     }
 
@@ -80,28 +75,14 @@ public class FilmController {
 
 
 
-    public boolean isValid(Film film) {
-        final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        final LocalDate minimalReleaseDate = LocalDate.parse("1895-12-28", dateTimeFormatter);
+    public boolean isValid(@Valid Film film) {
 
-        if (film.getName() == null) {
-            throw new ConditionsNotMetException("Название не может быть null");
-        } else if (film.getName() == "") {
-            throw new ConditionsNotMetException("Название не может быть пустым");
-        } else if (film.getDescription().length() > 200) {
-            throw new ConditionsNotMetException("Название фильма не может быть длиннее 200 символов !");
-        } else if (film.getReleaseDate().isBefore(minimalReleaseDate)) {
+        if (film.getReleaseDate().isBefore(minimalReleaseDate)) {
             throw new ConditionsNotMetException("Дата релиза фильма должна быть не раньше 28 декабря 1895 года !");
-        } else if (!(film.getDuration() instanceof Integer) || !(film.getDuration() > 0)) {
-            throw new ConditionsNotMetException("Длительность фильма должна быть целым положительным числом !");
         }
         return true;
 
-
     }
-
-
-
 
 
 }

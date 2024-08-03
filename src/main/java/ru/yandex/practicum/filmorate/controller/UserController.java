@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 
 
 import org.springframework.web.bind.annotation.*;
@@ -9,27 +9,24 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final HashMap<Integer, User> users = new HashMap<>();
 
-    private final Logger log = LoggerFactory.getLogger(UserController.class);
+    private Integer currentMaxUserId = 0;
 
     @PostMapping
-    public User create(@RequestBody User user) {
+    public User create(@Valid @RequestBody User user) {
         if (isValid(user)) {
 
-//            if (user.getId()users.containsKey(user.getId())) {
-//                throw new DuplicatedDataException("Пользователь с id " + user.getId() + " уже существует !");
-//            }
             user.setId(getNextId());
-            users.put(getNextId(), user);
+            users.put(user.getId(), user);
             return user;
         }
         System.out.println(user);
@@ -37,18 +34,14 @@ public class UserController {
     }
 
     private Integer getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .max()
-                .orElse(0);
-        return Math.toIntExact(++currentMaxId);
+        currentMaxUserId++;
+        return currentMaxUserId;
     }
 
 
 
     @PutMapping
-    public User update(@RequestBody User newUser) {
+    public User update(@Valid @RequestBody User newUser) {
         if (isValid(newUser)) {
 
             if (!users.containsKey(newUser.getId())) {
@@ -78,15 +71,9 @@ public class UserController {
     }
 
 
-    public boolean isValid(User user) {
+    public boolean isValid(@Valid User user) {
 
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            throw new ConditionsNotMetException("Электронная почта не может быть пустой и должна содержать символ @");
-        } else if (user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            throw new ConditionsNotMetException("Логин не может быть пустым и содержать пробелы; !");
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ConditionsNotMetException("Дата рождения не может быть в будущем !");
-        } else if (user.getName() == null) {
+        if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         return true;
