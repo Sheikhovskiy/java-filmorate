@@ -1,10 +1,8 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 import java.time.LocalDate;
 
