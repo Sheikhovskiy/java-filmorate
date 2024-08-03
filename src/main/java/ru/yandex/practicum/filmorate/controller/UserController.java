@@ -29,26 +29,18 @@ public class UserController {
             users.put(user.getId(), user);
             return user;
         }
-        System.out.println(user);
         return user;
     }
-
-    private Integer getNextId() {
-        currentMaxUserId++;
-        return currentMaxUserId;
-    }
-
 
 
     @PutMapping
     public User update(@Valid @RequestBody User newUser) {
         if (isValid(newUser)) {
 
-            if (!users.containsKey(newUser.getId())) {
-                throw new NotFoundException("Пользователь с id " + newUser.getId() + " не существует !");
-
-            } else if (newUser.getId() == null) {
+            if (newUser.getId() == null) {
                 throw new ConditionsNotMetException("Id пользователя должен быть указан !");
+            } else if (!users.containsKey(newUser.getId())) {
+                throw new NotFoundException("Пользователь с id " + newUser.getId() + " не существует !");
             }
 
             User oldUser = users.get(newUser.getId());
@@ -71,13 +63,18 @@ public class UserController {
     }
 
 
-    public boolean isValid(@Valid User user) {
+    public boolean isValid(User user) {
 
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
         return true;
 
+    }
+
+    private Integer getNextId() {
+        currentMaxUserId++;
+        return currentMaxUserId;
     }
 
 }

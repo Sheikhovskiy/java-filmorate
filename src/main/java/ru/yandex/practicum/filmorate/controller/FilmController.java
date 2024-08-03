@@ -22,8 +22,8 @@ public class FilmController {
 
     private Integer currentMaxFilmId = 0;
 
-    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final LocalDate minimalReleaseDate = LocalDate.parse("1895-12-28", dateTimeFormatter);
+//    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final LocalDate minimalReleaseDate = LocalDate.of(1895, 12, 28);
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
@@ -37,23 +37,18 @@ public class FilmController {
         return film;
     }
 
-    private Integer getNextId() {
-        currentMaxFilmId += 1;
-        return currentMaxFilmId;
-    }
-
-
     @PutMapping
     public Film update(@Valid @RequestBody Film newFilm) {
 
         if (isValid(newFilm)) {
 
-            if (!films.containsKey(newFilm.getId())) {
-                throw new NotFoundException("Фильм с id " + newFilm.getId() + " не существует !");
 
-            } else if (newFilm.getId() == null) {
-                throw new ConditionsNotMetException("Id фильма должен быть указан !");
-            }
+             if (newFilm.getId() == null) {
+
+                 throw new ConditionsNotMetException("Id фильма должен быть указан !");
+             } else if (!films.containsKey(newFilm.getId())) {
+                 throw new NotFoundException("Фильм с id " + newFilm.getId() + " не существует !");
+             }
 
             Film oldFilm = films.get(newFilm.getId());
 
@@ -82,6 +77,11 @@ public class FilmController {
         }
         return true;
 
+    }
+
+    private Integer getNextId() {
+        currentMaxFilmId += 1;
+        return currentMaxFilmId;
     }
 
 

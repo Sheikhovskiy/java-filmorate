@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -20,18 +21,17 @@ public class Film {
 
     private Integer id;
 
-    @NonNull
     @NotBlank
     private String name;
 
-    @NonNull
+    @NotBlank
     @Size(max = 200)
     private String description;
 
-    @NonNull
+    @NotNull
     private LocalDate releaseDate;
 
-    @NonNull
+    @NotNull
     @Positive
     private Integer duration;
 
