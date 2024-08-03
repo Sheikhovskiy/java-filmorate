@@ -65,10 +65,10 @@ public class UserController {
 
     public boolean isValid(User user) {
 
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        } else if (user.getName().contains(" ")) {
+        if (user.getLogin().contains(" ")) {
             throw new ConditionsNotMetException("Логин не должен содержать пробелы !");
+        } else if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
         }
         return true;
 
