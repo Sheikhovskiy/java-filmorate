@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 // Описание: @NotBlank используется для строк и проверяет, что строка не является null и не пустая (содержит хотя бы один непробельный символ).
 // Описание: @NotNull используется для проверки, что значение не является null. Он применяется ко всем типам объектов.
@@ -15,6 +17,7 @@ import java.time.LocalDate;
 // Без этой аннотации Spring просто принимает объект как есть и не выполняет проверки, даже если в объекте указаны аннотации валидации, такие как @NotBlank, @Email, @Size, и так далее.
 @Data
 @NoArgsConstructor
+@Component
 public class User {
 
     private Integer id;
@@ -31,6 +34,8 @@ public class User {
     @NotNull
     @PastOrPresent
     private LocalDate birthday;
+
+    private Set<Integer> friends;
 
 
 }

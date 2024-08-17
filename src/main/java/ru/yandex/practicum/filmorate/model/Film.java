@@ -7,8 +7,10 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 /**
  * Film.
@@ -16,6 +18,7 @@ import java.time.LocalDate;
 @Data
 @Valid
 @NoArgsConstructor
+@Component
 public class Film {
 
     private Integer id;
@@ -33,6 +36,8 @@ public class Film {
     @NotNull
     @Positive
     private Integer duration;
+
+    private Set<Integer> likes;
 
 
 }
