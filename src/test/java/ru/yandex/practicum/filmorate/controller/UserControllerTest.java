@@ -3,10 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -45,8 +42,6 @@ class UserControllerTest {
         assertEquals("ЛогинТест", createdUser.getLogin(), "Логин пользователя должен быть тем, что мы задали");
         assertEquals(LocalDate.of(1990, 1, 1), createdUser.getBirthday(), "Дата рождения пользователя должен быть той, что мы задали'");
     }
-
-
 
 
 
