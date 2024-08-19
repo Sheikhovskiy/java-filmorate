@@ -6,7 +6,9 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -15,11 +17,16 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
+    @Autowired
     private final FilmStorage filmStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    private final UserStorage userStorage;
+
+    @Autowired
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
     }
 
     public Film create(Film film) {
@@ -34,8 +41,8 @@ public class FilmService {
         return filmStorage.getAll();
     }
 
-    public Film delete(Film fIlm) {
-        return filmStorage.delete(fIlm);
+    public Film delete(Film film) {
+        return filmStorage.delete(film);
     }
 
     public Film addLike(User user, Film filmToLike) {
@@ -50,7 +57,7 @@ public class FilmService {
         return filmToLike;
     }
 
-    public Film deleteFriend(User user, Film filmToUnlike) {
+    public Film deleteLike(User user, Film filmToUnlike) {
         if (!isUserValid(user)) {
             throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
         }
@@ -65,8 +72,6 @@ public class FilmService {
     public Collection<Film> getTenMostPopularFilms() {
 
         List<Film> listOfFilms = (List<Film>) filmStorage.getAll();
-
-//        listOfFilms.sort(Comparator.comparing(film -> film.getLikes().size()).reversed());
 
         listOfFilms.sort(new FilmLikeRankingComparator().reversed());
 
@@ -84,6 +89,25 @@ public class FilmService {
         return user.getId() > 0;
     }
 
+
+    public Film likeFilmByUserId(Integer filmId, Integer userId) {
+        return addLike(userStorage.getUserById(userId), filmStorage.getFilmById(filmId));
+    }
+
+    public Film unlikeFilmByUserId(Integer filmId, Integer userId) {
+        return deleteLike(userStorage.getUserById(userId), filmStorage.getFilmById(filmId));
+    }
+
+    public Collection<Film> getMostPopularFilms(Integer size) {
+
+        List<Film> listOfFilms = new ArrayList<>(filmStorage.getAll());
+
+        listOfFilms.sort(new FilmLikeRankingComparator().reversed());
+
+        return listOfFilms.stream()
+                .limit(size)
+                .toList();
+    }
 
 
     public class FilmLikeRankingComparator implements Comparator<Film> {

@@ -71,6 +71,18 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
+    @Override
+    public Film getFilmById(Integer id) {
+        if (id < 1) {
+            throw new ConditionsNotMetException("У фильма должен быть положительный id");
+        }
+        if (!films.containsKey(id)) {
+            throw new NotFoundException("Фильм с id " + id + " не найден!");
+        }
+        return films.get(id);
+    }
+
+
     public boolean isValid(@Valid Film film) {
 
         if (film.getReleaseDate().isBefore(MINIMAL_RELEASE_DATE)) {
@@ -79,6 +91,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return true;
 
     }
+
 
     private Integer getNextId() {
         currentMaxFilmId += 1;

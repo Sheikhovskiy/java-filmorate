@@ -4,7 +4,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 
@@ -15,8 +18,6 @@ class FilmControllerTest {
 
     private FilmController filmController;
 
-    private InMemoryFilmStorage inMemoryFilmStorage;
-
     private FilmService filmService;
 
 
@@ -24,22 +25,23 @@ class FilmControllerTest {
 
     @BeforeEach
     void setUp() {
-        filmController = new FilmController(filmService, inMemoryFilmStorage);
+        FilmStorage filmStorage = new InMemoryFilmStorage();
+        UserStorage userStorage = new InMemoryUserStorage();
+
+        filmService = new FilmService(filmStorage, userStorage);
+        filmController = new FilmController(filmService);
     }
 
     @Test
     void createFilm() {
-        // Arrange
         Film film = new Film();
         film.setName("Фильм 1");
         film.setDescription("Описание фильма 2");
         film.setReleaseDate(LocalDate.of(2010, 7, 16));
         film.setDuration(148);
 
-        // Act
         Film createdFilm = filmController.create(film);
 
-        // Assert
         assertNotNull(createdFilm.getId(), "ID фильма должен существовать и быть числом");
         assertEquals("Фильм 1", createdFilm.getName(), "Название фильма должно совпадать с тем, что мы задали");
         assertEquals("Описание фильма 2", createdFilm.getDescription(), "Описание фильма должно совпадать с тем, что мы задали");

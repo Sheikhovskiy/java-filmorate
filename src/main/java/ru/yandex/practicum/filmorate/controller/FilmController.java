@@ -15,6 +15,7 @@ import java.util.Collection;
 @RequestMapping("/films")
 public class FilmController {
 
+    @Autowired
     private final FilmService filmService;
 
     @Autowired
@@ -38,26 +39,23 @@ public class FilmController {
     }
 
     @DeleteMapping
-    public Film delete(@Valid @RequestBody Film film) {
+    public Film delete(@Valid @RequestBody Film film)  {
         return filmService.delete(film);
     }
 
-    @PutMapping("/films/{id}/like/{userId}")
+    @PutMapping("/{id}/like/{userId}")
     public Film likeFilmByUserId(@PathVariable Integer id, @PathVariable Integer userId) {
-
+        return filmService.likeFilmByUserId(id, userId);
     }
 
-    @DeleteMapping("/films/{id}/like{userId}")
+    @DeleteMapping("/{id}/like/{userId}")
     public Film unlikeFilmByUserId(@PathVariable Integer id, @PathVariable Integer userId) {
-
+        return filmService.unlikeFilmByUserId(id, userId);
     }
 
-    @GetMapping("/films/popular?count={count}")
+    @GetMapping("/popular")
     public Collection<Film> getMostPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
-
+        return filmService.getMostPopularFilms(count);
     }
-
-
-
 
 }

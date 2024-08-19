@@ -7,8 +7,11 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -67,19 +70,51 @@ public class UserService {
             throw new ConditionsNotMetException("У пользователей id должен быть положительным");
         }
 
-        addFriend(userStorage.getUserById(userId), userStorage.getUserById(friendId));
-        return userStorage.getUserById(friendId);
+        User user = userStorage.getUserById(userId);
+        User userFriend = userStorage.getUserById(friendId);
+
+        if (user == null || userFriend == null) {
+            throw new NotFoundException("Пользователь(и) не найдены в базе данных");
+        }
+        addFriend(user, userFriend);
+        return userFriend;
     }
 
 
+    public User deleteUserFriendById(Integer userId, Integer friendId) {
+        if (userId < 0 || friendId < 0) {
+            throw new ConditionsNotMetException("У пользователей id должен быть положительным");
+        }
+        User user = userStorage.getUserById(userId);
+        User userFriend = userStorage.getUserById(friendId);
+
+        if (user == null || userFriend == null) {
+            throw new NotFoundException("Пользователь(и) не найдены в базе данных");
+        }
+        deleteFriend(user, userFriend);
+        return userFriend;
+    }
 
 
+    public Collection<User> getAllFriendsByUserId(Integer userId) {
+        List<Integer> userFriendsId = new ArrayList<>(getUserFriends(userStorage.getUserById(userId)));
+
+        return userFriendsId.stream()
+                .map(id -> userStorage.getUserById(id))
+                .collect(Collectors.toList());
+
+    }
 
 
+    public Collection<User> getCommonFriendsOfTwoUsers(Integer userId, Integer otherUserId) {
 
+        List<User> userFriends = (List<User>) getAllFriendsByUserId(userId);
+        List<User> otherUserFriends = (List<User>) getAllFriendsByUserId(otherUserId);
 
-
-
+        return userFriends.stream()
+                .filter(user -> otherUserFriends.contains(user))
+                .toList();
+    }
 
 
     public Collection<Integer> getUserFriends(User user) {

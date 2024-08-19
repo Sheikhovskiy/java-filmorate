@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -37,7 +38,7 @@ public class Film {
     @Positive
     private Integer duration;
 
-    private Set<Integer> likes;
+    private Set<Integer> likes = new HashSet<>();
 
 
 }

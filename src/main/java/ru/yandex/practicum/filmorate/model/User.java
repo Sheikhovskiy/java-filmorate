@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 // Описание: @NotBlank используется для строк и проверяет, что строка не является null и не пустая (содержит хотя бы один непробельный символ).
@@ -35,7 +36,7 @@ public class User {
     @PastOrPresent
     private LocalDate birthday;
 
-    private Set<Integer> friends;
+    private Set<Integer> friends = new HashSet<>();
 
 
 }

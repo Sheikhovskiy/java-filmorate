@@ -13,4 +13,6 @@ public interface FilmStorage {
     public Collection<Film> getAll();
 
     public Film delete(Film film);
+
+    public Film getFilmById(Integer id);
 }

@@ -8,8 +8,10 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.locks.Condition;
 
 @Component
 public class InMemoryUserStorage implements UserStorage{
@@ -20,7 +22,6 @@ public class InMemoryUserStorage implements UserStorage{
     @Override
     public User create(User user) {
         if (isValid(user)) {
-
             user.setId(getNextId());
             users.put(user.getId(), user);
             return user;
@@ -68,11 +69,13 @@ public class InMemoryUserStorage implements UserStorage{
 
     @Override
     public User getUserById(Integer id) {
-        if (users.containsKey(id)) {
-            return users.get(id);
-        } else {
-            throw new NotFoundException("Пользователя с таким id не существует!");
+        if (id < 1) {
+            throw new ConditionsNotMetException("У пользователя должен быть положительный id");
         }
+        if (!users.containsKey(id)) {
+            throw new NotFoundException("Пользователь с id " + id + " не найден!");
+        }
+        return users.get(id);
     }
 
 
@@ -83,6 +86,8 @@ public class InMemoryUserStorage implements UserStorage{
             throw new ConditionsNotMetException("Логин не должен содержать пробелы !");
         } else if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
+        } else if (user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ConditionsNotMetException("Дата рождения не может быть в будущем");
         }
         return true;
     }
