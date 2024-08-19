@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 @Component
-public class InMemoryUserStorage implements UserStorage{
+public class InMemoryUserStorage implements UserStorage {
 
     private final HashMap<Integer, User> users = new HashMap<>();
     private Integer currentMaxUserId = 0;
