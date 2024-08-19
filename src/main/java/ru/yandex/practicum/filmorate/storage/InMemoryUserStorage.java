@@ -1,9 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -11,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.concurrent.locks.Condition;
 
 @Component
 public class InMemoryUserStorage implements UserStorage{
