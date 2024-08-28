@@ -73,7 +73,7 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public Optional<Film> getFilmById(int id) {
-        log.info("ID ФИЛЬМА: " + id );
+        log.info("ID ФИЛЬМА: " + id);
         try {
             String query = "SELECT * FROM films WHERE film_id = :id";
             MapSqlParameterSource params = new MapSqlParameterSource("id", id);
