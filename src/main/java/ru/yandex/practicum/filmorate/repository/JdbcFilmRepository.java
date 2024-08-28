@@ -10,7 +10,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -20,7 +19,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Repository
 @Qualifier("FilmDbStorage")
@@ -41,26 +39,23 @@ public class JdbcFilmRepository implements FilmRepository {
     public Film create(Film film) {
         int mpaId = film.getMpa().getId();
 
-        // Если mpa_id равен 0, автоматически назначаем MPA с id = 1 (рейтинг "G")
         if (mpaId == 0) {
-            Optional<Mpa> defaultMpa = mpaRepository.getById(1); // Используем id = 1 как значение по умолчанию для рейтинга G
+            Optional<Mpa> defaultMpa = mpaRepository.getById(1);
             if (defaultMpa.isPresent()) {
                 Mpa mpa = defaultMpa.get();
                 mpaId = mpa.getId();
-                film.setMpa(mpa);  // Устанавливаем объект MPA (включая id и имя) в фильм
+                film.setMpa(mpa);
             } else {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "MPA рейтинг 'G' не найден");
             }
         } else {
-            // Проверка наличия MPA с указанным id
             Optional<Mpa> mpaOptional = mpaRepository.getById(mpaId);
             if (!mpaOptional.isPresent()) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "MPA не найден");
             }
 
-            // Получаем объект MPA и устанавливаем его в фильм
             Mpa mpa = mpaOptional.get();
-            film.setMpa(mpa);  // Устанавливаем объект MPA (включая id и имя) в фильм
+            film.setMpa(mpa);
         }
 
         // Дальнейшая логика вставки фильма в базу данных
