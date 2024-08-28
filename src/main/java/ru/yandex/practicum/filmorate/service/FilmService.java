@@ -1,30 +1,27 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+
 @Service
-public class FilmService {
+public class FilmService  {
 
-    @Autowired
     private final FilmStorage filmStorage;
-
-    @Autowired
     private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, @Qualifier("UserDbStorage") UserStorage userStorage) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
     }
@@ -46,14 +43,15 @@ public class FilmService {
     }
 
     public Film addLike(User user, Film filmToLike) {
-
         if (!isUserValid(user)) {
             throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
         }
         if (!isFilmValid(filmToLike)) {
             throw new ConditionsNotMetException("У фильма id должен быть положительным числом");
         }
+
         filmToLike.getLikes().add(user.getId());
+        filmStorage.update(filmToLike);
         return filmToLike;
     }
 
@@ -64,9 +62,12 @@ public class FilmService {
         if (!isFilmValid(filmToUnlike)) {
             throw new ConditionsNotMetException("У фильма id должен быть положительным числом");
         }
+
         filmToUnlike.getLikes().remove(user.getId());
+        filmStorage.update(filmToUnlike);
         return filmToUnlike;
     }
+
 
 
     public Collection<Film> getTenMostPopularFilms() {
@@ -90,25 +91,37 @@ public class FilmService {
     }
 
 
-    public Film likeFilmByUserId(Integer filmId, Integer userId) {
-        return addLike(userStorage.getUserById(userId), filmStorage.getFilmById(filmId));
+    public Optional<Film> likeFilmByUserId(Integer filmId, Integer userId) {
+        Optional<User> userOptional = userStorage.getUserById(userId);
+        Optional<Film> filmOptional = filmStorage.getFilmById(filmId);
+
+        if (userOptional.isPresent() && filmOptional.isPresent()) {
+            ((FilmDbStorage) filmStorage).addLike(filmId, userId);
+
+            return filmStorage.getFilmById(filmId);
+        } else {
+            return Optional.empty();
+        }
     }
 
-    public Film unlikeFilmByUserId(Integer filmId, Integer userId) {
-        return deleteLike(userStorage.getUserById(userId), filmStorage.getFilmById(filmId));
+    public Optional<Film> unlikeFilmByUserId(Integer filmId, Integer userId) {
+        Optional<User> userOptional = userStorage.getUserById(userId);
+        Optional<Film> filmOptional = filmStorage.getFilmById(filmId);
+
+        if (userOptional.isPresent() && filmOptional.isPresent()) {
+            // Здесь вызываем метод удаления лайка в БД
+            ((FilmDbStorage) filmStorage).removeLike(filmId, userId);
+            // Возвращаем обновленный фильм
+            return filmStorage.getFilmById(filmId);
+        } else {
+            return Optional.empty();
+        }
     }
+
 
     public Collection<Film> getMostPopularFilms(Integer size) {
-
-        List<Film> listOfFilms = new ArrayList<>(filmStorage.getAll());
-
-        listOfFilms.sort(new FilmLikeRankingComparator().reversed());
-
-        return listOfFilms.stream()
-                .limit(size)
-                .toList();
+        return ((FilmDbStorage) filmStorage).getMostPopularFilms(size);
     }
-
 
     public class FilmLikeRankingComparator implements Comparator<Film> {
 

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Data
@@ -33,7 +34,9 @@ public class Film {
     @Positive
     private Integer duration;
 
+    private LinkedHashSet<Genre> genres;
+
+    private Mpa mpa;
+
     private Set<Integer> likes = new HashSet<>();
-
-
 }

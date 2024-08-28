@@ -31,10 +31,6 @@ public class ErrorHandler {
         return new ErrorResponse(errorMessage, e.getMessage());
     }
 
-
-
-
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(final NotFoundException e) {
