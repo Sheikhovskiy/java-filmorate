@@ -57,7 +57,6 @@ public class UserDbStorage implements UserStorage {
     }
 
 
-
     @Override
     public Collection<User> getAll() {
         return jdbcUserRepository.getAll();

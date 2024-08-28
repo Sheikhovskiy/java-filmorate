@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import java.sql.ResultSet;
+
 
 import java.util.List;
 import java.util.Optional;
@@ -36,11 +38,9 @@ public class JdbcMpaRepository implements MpaRepository {
         return count != null && count > 0;
     }
 
-    @Override
-    public Optional<Mpa> getById(int mpaId) {
-
-        String sql = "SELECT * FROM mpa WHERE mpa_id = :mpaId";
-        MapSqlParameterSource params = new MapSqlParameterSource("mpaId", mpaId);
+    public Optional<Mpa> getById(int id) {
+        String sql = "SELECT * FROM mpa WHERE mpa_id = :id";
+        MapSqlParameterSource params = new MapSqlParameterSource("id", id);
         List<Mpa> mpaList = namedParameterJdbcTemplate.query(sql, params, (rs, rowNum) -> {
             return new Mpa(rs.getInt("mpa_id"), rs.getString("name"));
         });

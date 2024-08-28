@@ -1,6 +1,8 @@
 
 DELETE mpa;
 DELETE genres;
+DELETE films;
+
 
 CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,

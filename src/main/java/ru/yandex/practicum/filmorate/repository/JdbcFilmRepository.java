@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,6 +26,8 @@ import java.util.*;
 @Qualifier("FilmDbStorage")
 public class JdbcFilmRepository implements FilmRepository {
 
+    private static final Logger log = LoggerFactory.getLogger(JdbcFilmRepository.class);
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
@@ -39,50 +43,24 @@ public class JdbcFilmRepository implements FilmRepository {
     public Film create(Film film) {
         int mpaId = film.getMpa().getId();
 
-        if (mpaId == 0) {
-            Optional<Mpa> defaultMpa = mpaRepository.getById(1);
-            if (defaultMpa.isPresent()) {
-                Mpa mpa = defaultMpa.get();
-                mpaId = mpa.getId();
-                film.setMpa(mpa);
-            } else {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "MPA рейтинг 'G' не найден");
-            }
-        } else {
-            Optional<Mpa> mpaOptional = mpaRepository.getById(mpaId);
-            if (!mpaOptional.isPresent()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "MPA не найден");
-            }
+        log.info(String.valueOf(mpaId));
 
-            Mpa mpa = mpaOptional.get();
-            film.setMpa(mpa);
-        }
-
-        // Дальнейшая логика вставки фильма в базу данных
         String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id) VALUES (:name, :description, :releaseDate, :duration, :mpaId)";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("name", film.getName());
         params.addValue("description", film.getDescription());
         params.addValue("releaseDate", film.getReleaseDate());
         params.addValue("duration", film.getDuration());
-        params.addValue("mpaId", mpaId);  // Используем корректное значение mpa_id
+        params.addValue("mpaId", mpaId);
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(sql, params, keyHolder, new String[]{"film_id"});
         film.setId(keyHolder.getKey().intValue());
 
-        // Сохранение жанров фильма
         saveFilmGenres(film);
 
         return film;
     }
-
-
-
-
-
-
-
 
 
     @Override
@@ -178,8 +156,7 @@ public class JdbcFilmRepository implements FilmRepository {
 
     @Override
     public List<Film> getMostPopularFilms(int count) {
-        String getMostPopularFilmsQuery = "SELECT * FROM films " +
-                "COUNT(fl.user_id) AS likes_count " +
+        String getMostPopularFilmsQuery = "SELECT f.*, COUNT(fl.user_id) AS likes_count " +
                 "FROM films AS f " +
                 "LEFT JOIN film_likes AS fl ON f.film_id = fl.film_id " +
                 "GROUP BY f.film_id " +
@@ -193,8 +170,8 @@ public class JdbcFilmRepository implements FilmRepository {
         }
 
         return films;
-
     }
+
 
     private void saveFilmGenres(Film film) {
         String deleteSql = "DELETE FROM film_genres WHERE film_id = :filmId";
@@ -211,23 +188,20 @@ public class JdbcFilmRepository implements FilmRepository {
     }
 
     public Optional<Film> getFilmByNameAndReleaseDate(String name, LocalDate releaseDate) {
-        String sql = "SELECT * FROM films WHERE name = :name AND release_date = :releaseDate";
+        String sql = "SELECT film_id, name, release_date FROM films WHERE name = :name AND release_date = :releaseDate";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("name", name);
         params.addValue("releaseDate", releaseDate);
 
-        try {
-            Film film = jdbcTemplate.query(sql, params, rs -> {
-                if (rs.next()) {
-                    return mapRowToFilm(rs);
-                } else {
-                    return null;
-                }
-            });
-            return Optional.ofNullable(film);
-        } catch (EmptyResultDataAccessException e) {
-            return Optional.empty();
-        }
+        List<Film> films = jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            Film film = new Film();
+            film.setId(rs.getInt("film_id"));
+            film.setName(rs.getString("name"));
+            film.setReleaseDate(rs.getDate("release_date").toLocalDate());
+            return film;
+        });
+
+        return films.isEmpty() ? Optional.empty() : Optional.of(films.get(0));
     }
 
 

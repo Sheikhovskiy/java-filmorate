@@ -34,6 +34,7 @@ public class FilmDbStorage implements FilmStorage {
 
         Optional<Film> alreadyExistFilm = jdbcFilmRepository.getFilmByNameAndReleaseDate(film.getName(), film.getReleaseDate());
 
+
         if (alreadyExistFilm.isPresent()) {
             throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует!");
         }
@@ -43,8 +44,6 @@ public class FilmDbStorage implements FilmStorage {
 
         return createdFilm;
     }
-
-
 
     @Override
     public Film update(Film newFilm) {
@@ -109,16 +108,6 @@ public class FilmDbStorage implements FilmStorage {
         if (film.getDuration() <= 0) {
             throw new ConditionsNotMetException("Продолжительность фильма должна быть положительным числом!");
         }
-
-//        if (film.getMpa() == null) {
-//            throw new ConditionsNotMetException("Фильм должен иметь возрастной рейтинг (MPA)!");
-//        }
-//
-//        // Дополнительная проверка для поля genres (если требуется)
-//        if (film.getGenres() == null || film.getGenres().isEmpty()) {
-//            throw new ConditionsNotMetException("Фильм должен иметь хотя бы один жанр!");
-//        }
-
         return true;
     }
 
