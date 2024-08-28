@@ -52,29 +52,24 @@ public class JdbcGenreRepository implements GenreRepository {
     }
 
     @Override
-    public void saveFilmGenres(int filmId, List<Genre> genres) {
-        // Сначала удалим старые жанры для этого фильма
-        String deleteSql = "DELETE FROM film_genres WHERE film_id = :filmId";
-        jdbcTemplate.update(deleteSql, new MapSqlParameterSource("filmId", filmId));
-
-        // Затем добавим новые жанры
-        if (genres != null && !genres.isEmpty()) {
-            String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (:filmId, :genreId)";
-            for (Genre genre : genres) {
-                MapSqlParameterSource params = new MapSqlParameterSource();
-                params.addValue("filmId", filmId);
-                params.addValue("genreId", genre.getId());
-                jdbcTemplate.update(insertSql, params);
-            }
-        }
-    }
-
-    @Override
-    public boolean existsById(long id) {
-        String sql = "SELECT COUNT(*) FROM genres WHERE genre_id = :id";
+    public Optional<String> getName(int id) {
+        String sql = "SELECT name FROM genres WHERE genre_id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource("id", id);
-        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
-        return count != null && count > 0;
+        return jdbcTemplate.query(sql, params, rs -> {
+            if (rs.next()) {
+                return Optional.of(rs.getString("name"));
+            } else {
+                return Optional.empty();
+            }
+        });
     }
+
+//    @Override
+//    public boolean existsById(long id) {
+//        String sql = "SELECT COUNT(*) FROM genres WHERE genre_id = :id";
+//        MapSqlParameterSource params = new MapSqlParameterSource("id", id);
+//        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
+//        return count != null && count > 0;
+//    }
 
 }

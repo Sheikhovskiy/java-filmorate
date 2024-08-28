@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
@@ -129,6 +130,14 @@ public class FilmService  {
         public int compare(Film firstFilm, Film secondFilm) {
             return Integer.compare(firstFilm.getLikes().size(), secondFilm.getLikes().size());
         }
+    }
+
+
+    public Film getFilmById(Integer filmId) {
+        if (filmStorage.getFilmById(filmId).isEmpty()) {
+            throw new NotFoundException("Фильма с таким идентификатором id " + filmId + " не существует!");
+        }
+        return filmStorage.getFilmById(filmId).get();
     }
 
 

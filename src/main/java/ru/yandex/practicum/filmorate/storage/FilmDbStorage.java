@@ -8,9 +8,13 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.JdbcFilmRepository;
+import ru.yandex.practicum.filmorate.repository.JdbcGenreRepository;
+import ru.yandex.practicum.filmorate.repository.JdbcMpaRepository;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -21,10 +25,17 @@ public class FilmDbStorage implements FilmStorage {
 
     private final JdbcFilmRepository jdbcFilmRepository;
 
+    private final JdbcMpaRepository jdbcMpaRepository;
+
+    private final JdbcGenreRepository jdbcGenreRepository;
+
     @Autowired
-    public FilmDbStorage(JdbcFilmRepository jdbcFilmRepository) {
+    public FilmDbStorage(JdbcFilmRepository jdbcFilmRepository, JdbcMpaRepository jdbcMpaRepository, JdbcGenreRepository jdbcGenreRepository) {
         this.jdbcFilmRepository = jdbcFilmRepository;
+        this.jdbcMpaRepository = jdbcMpaRepository;
+        this.jdbcGenreRepository = jdbcGenreRepository;
     }
+
 
 
     public Film create(Film film) {
@@ -32,8 +43,9 @@ public class FilmDbStorage implements FilmStorage {
 
         validateFilmData(film);
 
-        Optional<Film> alreadyExistFilm = jdbcFilmRepository.getFilmByNameAndReleaseDate(film.getName(), film.getReleaseDate());
+//        log.info(String.valueOf(film.getGenres()));
 
+        Optional<Film> alreadyExistFilm = jdbcFilmRepository.getFilmByNameAndReleaseDate(film.getName(), film.getReleaseDate());
 
         if (alreadyExistFilm.isPresent()) {
             throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует!");
@@ -101,15 +113,29 @@ public class FilmDbStorage implements FilmStorage {
             throw new ConditionsNotMetException("Фильм должен иметь описание!");
         }
 
-        if (film.getReleaseDate() == null) {
-            throw new ConditionsNotMetException("Дата релиза должна быть указана!");
+        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) { // Примерно, если вы хотите ограничить минимальную дату
+            throw new ConditionsNotMetException("Дата релиза должна быть указана и не может быть ранее 28 декабря 1895 года!");
         }
 
         if (film.getDuration() <= 0) {
             throw new ConditionsNotMetException("Продолжительность фильма должна быть положительным числом!");
         }
+
+        if (film.getMpa() == null || jdbcMpaRepository.getById(film.getMpa().getId()).isEmpty()) {
+            throw new ConditionsNotMetException("MPA-рейтинг должен быть указан и существовать в системе!");
+        }
+
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                if (jdbcGenreRepository.getById((int) genre.getId()).isEmpty()) {
+                    throw new ConditionsNotMetException("Жанр с ID " + genre.getId() + " не найден!");
+                }
+            }
+        }
+
         return true;
     }
+
 
 
 

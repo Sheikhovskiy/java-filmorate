@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -37,9 +38,15 @@ public class JdbcFilmRepository implements FilmRepository {
 
 
     public Film create(Film film) {
+
+        Optional<Film> existingFilm = getFilmByNameAndReleaseDate(film.getName(), film.getReleaseDate());
+        if (existingFilm.isPresent()) {
+            throw new DuplicatedDataException("Фильм с таким именем и датой релиза уже существует!");
+        }
+
         int mpaId = film.getMpa().getId();
 
-        log.info(String.valueOf(mpaId));
+        log.info("СОЗДАНИЕ ФИЛЬМА С MPA ID: {}", mpaId);
 
         String sql = "INSERT INTO films (name, description, release_date, duration, mpa_id) VALUES (:name, :description, :releaseDate, :duration, :mpaId)";
         MapSqlParameterSource params = new MapSqlParameterSource();
@@ -64,26 +71,34 @@ public class JdbcFilmRepository implements FilmRepository {
         return null;
     }
 
+    @Override
     public Optional<Film> getFilmById(int id) {
-        String query = "SELECT * FROM films WHERE film_id = :id";
-        MapSqlParameterSource params = new MapSqlParameterSource("id", id);
-        Film film = jdbcTemplate.query(query, params, rs -> {
-            if (rs.next()) {
-                return mapRowToFilm(rs);
-            } else {
-                return null;
-            }
-        });
+        log.info("ID ФИЛЬМА: " + id );
+        try {
+            String query = "SELECT * FROM films WHERE film_id = :id";
+            MapSqlParameterSource params = new MapSqlParameterSource("id", id);
+            Film film = jdbcTemplate.query(query, params, rs -> {
+                if (rs.next()) {
+                    Film tempFilm = mapRowToFilm(rs);
+                    System.out.println(getAll());
+                    tempFilm.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(tempFilm.getId())));
+                    return tempFilm;
+                } else {
+                    return null;
+                }
+            });
 
-        if (film == null) {
-            return Optional.empty();
+            return Optional.ofNullable(film);
+        } catch (Exception e) {
+            log.error("Ошибка при попытке получить фильм с id " + id, e);
+            throw new RuntimeException("Произошла ошибка при извлечении фильма", e);
         }
-
-        film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
-        return Optional.of(film);
     }
 
+
+
     public Film update(Film film) {
+        log.info("Updating film: {}", film);
         String query = "UPDATE films SET name = :name, description = :description, release_date = :releaseDate, duration = :duration, mpa_id = :mpaId WHERE film_id = :id";
         MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("name", film.getName());
@@ -99,6 +114,7 @@ public class JdbcFilmRepository implements FilmRepository {
         }
 
         saveFilmGenres(film);
+        log.info("Фильм успешно обновлен: {}", film);
 
         return film;
     }
@@ -173,6 +189,8 @@ public class JdbcFilmRepository implements FilmRepository {
         String deleteSql = "DELETE FROM film_genres WHERE film_id = :filmId";
         jdbcTemplate.update(deleteSql, new MapSqlParameterSource("filmId", film.getId()));
 
+//        film.getGenres();
+
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (:filmId, :genreId)";
             for (Genre genre : film.getGenres()) {
@@ -182,6 +200,7 @@ public class JdbcFilmRepository implements FilmRepository {
             }
         }
     }
+
 
     public Optional<Film> getFilmByNameAndReleaseDate(String name, LocalDate releaseDate) {
         String sql = "SELECT film_id, name, release_date FROM films WHERE name = :name AND release_date = :releaseDate";
@@ -209,6 +228,7 @@ public class JdbcFilmRepository implements FilmRepository {
         film.setReleaseDate(rs.getDate("release_date").toLocalDate());
         film.setDuration(rs.getInt("duration"));
         film.setMpa(mpaRepository.getById(rs.getInt("mpa_id")).orElseThrow(() -> new NotFoundException("MPA не найден")));
+
         return film;
     }
 }
