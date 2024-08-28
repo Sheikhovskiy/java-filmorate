@@ -112,6 +112,7 @@ public class UserService {
 
         return friendOptional.get();
     }
+
     public User deleteUserFriendById(Integer userId, Integer friendId) {
         if (userId < 1 || friendId < 1) {
             throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
