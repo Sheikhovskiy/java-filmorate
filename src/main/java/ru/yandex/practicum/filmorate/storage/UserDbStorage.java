@@ -39,25 +39,20 @@ public class UserDbStorage implements UserStorage {
     public User update(User newUser) {
         validateUserData(newUser);
 
-        // Проверка, существует ли пользователь с таким id
         Optional<User> existingUserById = jdbcUserRepository.getUserById(newUser.getId());
         if (existingUserById.isEmpty()) {
             throw new NotFoundException("Пользователь с таким id не найден!");
         }
 
-        // Проверка, существует ли пользователь с таким email, но другим id
         Optional<User> existingUserByEmail = jdbcUserRepository.getUserByEmail(newUser.getEmail());
         if (existingUserByEmail.isPresent() && !existingUserByEmail.get().getId().equals(newUser.getId())) {
             throw new DuplicatedDataException("Другой пользователь с таким email уже существует!");
         }
 
-        // Выполняем обновление пользователя
         User updatedUser = jdbcUserRepository.update(newUser);
 
-        // Логирование успешного обновления
         System.out.println("Пользователь обновлен: " + updatedUser);
 
-        // Возвращаем обновленного пользователя, включая поле id
         return updatedUser;
     }
 
@@ -70,7 +65,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User delete(User user) {
-        validateUserData(user);  
+        validateUserData(user);
         
         return jdbcUserRepository.delete(user);
     }
