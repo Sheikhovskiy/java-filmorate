@@ -1,27 +1,3 @@
-
---DELETE FROM friends;
---DELETE FROM film_likes;
---DELETE FROM film_genres;
---DELETE FROM films;
---DELETE FROM genres;
---DELETE FROM mpa;
---DROP TABLE IF EXISTS friends;
---DROP TABLE IF EXISTS film_likes;
---DROP TABLE IF EXISTS film_genres;
---DROP TABLE IF EXISTS films;
---DROP TABLE IF EXISTS genres;
---DROP TABLE IF EXISTS mpa;
---DROP TABLE IF EXISTS users;
-
-
-
----- Сброс автоинкрементных значений
---ALTER TABLE films AUTO_INCREMENT = 1;
---ALTER TABLE mpa AUTO_INCREMENT = 1;
---ALTER TABLE genres AUTO_INCREMENT = 1;
---ALTER TABLE users AUTO_INCREMENT = 1;
-
-
 CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -88,12 +64,3 @@ INSERT INTO genres (genre_id, name) VALUES (3, 'Мультфильм');
 INSERT INTO genres (genre_id, name) VALUES (4, 'Триллер');
 INSERT INTO genres (genre_id, name) VALUES (5, 'Документальный');
 INSERT INTO genres (genre_id, name) VALUES (6, 'Боевик');
-
-
-
-
-
-
-
-
-

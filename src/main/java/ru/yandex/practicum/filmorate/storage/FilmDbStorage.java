@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
-import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -45,11 +44,11 @@ public class FilmDbStorage implements FilmStorage {
 
 //        log.info(String.valueOf(film.getGenres()));
 
-        Optional<Film> alreadyExistFilm = jdbcFilmRepository.getFilmByNameAndReleaseDate(film.getName(), film.getReleaseDate());
-
-        if (alreadyExistFilm.isPresent()) {
-            throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует!");
-        }
+//        Optional<Film> alreadyExistFilm = jdbcFilmRepository.getFilmByNameAndReleaseDate(film.getName(), film.getReleaseDate());
+//
+//        if (alreadyExistFilm.isPresent()) {
+//            throw new DuplicatedDataException("Фильм с таким названием и датой релиза уже существует!");
+//        }
 
         Film createdFilm = jdbcFilmRepository.create(film);
         System.out.println("Фильм успешно создан: " + createdFilm);
