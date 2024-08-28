@@ -1,17 +1,17 @@
 
-DELETE FROM friends;
-DELETE FROM film_likes;
-DELETE FROM film_genres;
-DELETE FROM films;
-DELETE FROM genres;
-DELETE FROM mpa;
-DROP TABLE IF EXISTS friends;
-DROP TABLE IF EXISTS film_likes;
-DROP TABLE IF EXISTS film_genres;
-DROP TABLE IF EXISTS films;
-DROP TABLE IF EXISTS genres;
-DROP TABLE IF EXISTS mpa;
-DROP TABLE IF EXISTS users;
+--DELETE FROM friends;
+--DELETE FROM film_likes;
+--DELETE FROM film_genres;
+--DELETE FROM films;
+--DELETE FROM genres;
+--DELETE FROM mpa;
+--DROP TABLE IF EXISTS friends;
+--DROP TABLE IF EXISTS film_likes;
+--DROP TABLE IF EXISTS film_genres;
+--DROP TABLE IF EXISTS films;
+--DROP TABLE IF EXISTS genres;
+--DROP TABLE IF EXISTS mpa;
+--DROP TABLE IF EXISTS users;
 
 
 
