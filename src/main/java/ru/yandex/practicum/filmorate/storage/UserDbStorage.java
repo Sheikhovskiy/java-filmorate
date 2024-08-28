@@ -66,7 +66,6 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User delete(User user) {
         validateUserData(user);
-        
         return jdbcUserRepository.delete(user);
     }
 
