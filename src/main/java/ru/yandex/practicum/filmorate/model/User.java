@@ -3,11 +3,8 @@ package ru.yandex.practicum.filmorate.model;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 // Описание: @NotBlank используется для проверки строковых полей, чтобы убедиться, что строка не является null и не пустая (то есть не содержит только пробелы).
 // Описание: @NotNull используется для проверки, что значение не является null. Он применяется ко всем типам объектов. Является частью спецификации Bean Validation
