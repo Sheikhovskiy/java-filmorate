@@ -6,14 +6,8 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.function.UnaryOperator.identity;
-import static org.zalando.logbook.core.BodyReplacers.stream;
 
 @Repository
 public class JdbcGenreRepository implements GenreRepository {
