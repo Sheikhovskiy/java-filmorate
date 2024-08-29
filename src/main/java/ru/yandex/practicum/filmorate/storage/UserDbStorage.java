@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.DuplicatedDataException;
@@ -13,9 +12,10 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Component
-@Qualifier("UserDbStorage")
+//@Qualifier("UserDbStorage")
 public class UserDbStorage implements UserStorage {
 
+    @Autowired
     private final JdbcUserRepository jdbcUserRepository;
 
     @Autowired
@@ -25,7 +25,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User create(User user) {
-        validateUserData(user);
 
         Optional<User> alreadyexistUser = jdbcUserRepository.getUserByEmail(user.getEmail());
 
@@ -37,7 +36,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User update(User newUser) {
-        validateUserData(newUser);
 
         Optional<User> existingUserById = jdbcUserRepository.getUserById(newUser.getId());
         if (existingUserById.isEmpty()) {
@@ -64,7 +62,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User delete(User user) {
-        validateUserData(user);
         return jdbcUserRepository.delete(user);
     }
 
@@ -75,16 +72,6 @@ public class UserDbStorage implements UserStorage {
         }
         return jdbcUserRepository.getUserById(id);
 
-    }
-
-    private void validateUserData(User user) {
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            throw new ConditionsNotMetException("Эл. почта должна быть указана!");
-        }
-
-        if (user.getLogin() == null || user.getLogin().isEmpty()) {
-            throw new ConditionsNotMetException("Логин должен быть указан!");
-        }
     }
 
 }

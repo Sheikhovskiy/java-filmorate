@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,23 +19,24 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Repository
+@RequiredArgsConstructor
 @Qualifier("FilmDbStorage")
 public class JdbcFilmRepository implements FilmRepository {
-
-    private static final Logger log = LoggerFactory.getLogger(JdbcFilmRepository.class);
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
 
-    @Autowired
-    public JdbcFilmRepository(NamedParameterJdbcTemplate jdbcTemplate, MpaRepository mpaRepository, GenreRepository genreRepository) {
-        this.jdbcTemplate = jdbcTemplate;
-        this.mpaRepository = mpaRepository;
-        this.genreRepository = genreRepository;
-    }
+//    @Autowired
+//    public JdbcFilmRepository(NamedParameterJdbcTemplate jdbcTemplate, MpaRepository mpaRepository, GenreRepository genreRepository) {
+//        this.jdbcTemplate = jdbcTemplate;
+//        this.mpaRepository = mpaRepository;
+//        this.genreRepository = genreRepository;
+//    }
 
 
     public Film create(Film film) {
@@ -69,7 +72,6 @@ public class JdbcFilmRepository implements FilmRepository {
                 Film tempFilm = mapRowToFilm(rs);
                 // Подгружаем жанры для фильма
                 tempFilm.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(tempFilm.getId())));
-                System.out.println("ID: " + tempFilm.getId() + tempFilm);
                 return tempFilm;
             } else {
                 return null;
@@ -108,19 +110,18 @@ public class JdbcFilmRepository implements FilmRepository {
         String deleteSql = "DELETE FROM film_genres WHERE film_id = :filmId";
         jdbcTemplate.update(deleteSql, new MapSqlParameterSource("filmId", film.getId()));
 
-//        film.getGenres();
-
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (:filmId, :genreId)";
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(insertSql, new MapSqlParameterSource()
-                        .addValue("filmId", film.getId())
-                        .addValue("genreId", genre.getId()));
-            }
+
+            List<MapSqlParameterSource> batchParams = film.getGenres().stream()
+                    .map(genre -> new MapSqlParameterSource()
+                            .addValue("filmId", film.getId())
+                            .addValue("genreId", genre.getId()))
+                    .collect(Collectors.toList());
+
+            jdbcTemplate.batchUpdate(insertSql, batchParams.toArray(new MapSqlParameterSource[0]));
         }
     }
-
-
 
 
     public List<Film> getAll() {

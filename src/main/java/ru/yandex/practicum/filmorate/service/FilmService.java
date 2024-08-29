@@ -1,37 +1,56 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.JdbcGenreRepository;
+import ru.yandex.practicum.filmorate.repository.JdbcMpaRepository;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+@RequiredArgsConstructor
 @Service
 public class FilmService  {
 
     private final FilmStorage filmStorage;
+
     private final UserStorage userStorage;
 
-    @Autowired
-    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, @Qualifier("UserDbStorage") UserStorage userStorage) {
-        this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
-    }
+    private final NamedParameterJdbcTemplate jdbcTemplate;
+
+    private final JdbcMpaRepository jdbcMpaRepository;
+
+    private final JdbcGenreRepository jdbcGenreRepository;
+
+    private static final LocalDate MINIMAL_RELEASE_DATE = LocalDate.of(1895, 12, 28);
+
+
+//        @Autowired
+//    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, @Qualifier("UserDbStorage") UserStorage userStorage) {
+//        this.filmStorage = filmStorage;
+//        this.userStorage = userStorage;
+//    }
 
     public Film create(Film film) {
+        validateFilmData(film);
+
         return filmStorage.create(film);
     }
 
     public Film update(Film film) {
+        validateFilmData(film);
+
         return filmStorage.update(film);
     }
 
@@ -40,55 +59,9 @@ public class FilmService  {
     }
 
     public Film delete(Film film) {
+        validateFilmData(film);
+
         return filmStorage.delete(film);
-    }
-
-    public Film addLike(User user, Film filmToLike) {
-        if (!isUserValid(user)) {
-            throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
-        }
-        if (!isFilmValid(filmToLike)) {
-            throw new ConditionsNotMetException("У фильма id должен быть положительным числом");
-        }
-
-        filmToLike.getLikes().add(user.getId());
-        filmStorage.update(filmToLike);
-        return filmToLike;
-    }
-
-    public Film deleteLike(User user, Film filmToUnlike) {
-        if (!isUserValid(user)) {
-            throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
-        }
-        if (!isFilmValid(filmToUnlike)) {
-            throw new ConditionsNotMetException("У фильма id должен быть положительным числом");
-        }
-
-        filmToUnlike.getLikes().remove(user.getId());
-        filmStorage.update(filmToUnlike);
-        return filmToUnlike;
-    }
-
-
-
-    public Collection<Film> getTenMostPopularFilms() {
-
-        List<Film> listOfFilms = (List<Film>) filmStorage.getAll();
-
-        listOfFilms.sort(new FilmLikeRankingComparator().reversed());
-
-        return listOfFilms.stream()
-                .limit(10)
-                .collect(Collectors.toList());
-    }
-
-
-    public boolean isFilmValid(Film film) {
-        return film.getId() > 0;
-    }
-
-    public boolean isUserValid(User user) {
-        return user.getId() > 0;
     }
 
 
@@ -124,20 +97,56 @@ public class FilmService  {
         return ((FilmDbStorage) filmStorage).getMostPopularFilms(size);
     }
 
-    public class FilmLikeRankingComparator implements Comparator<Film> {
-
-        @Override
-        public int compare(Film firstFilm, Film secondFilm) {
-            return Integer.compare(firstFilm.getLikes().size(), secondFilm.getLikes().size());
-        }
-    }
-
-
     public Film getFilmById(Integer filmId) {
         if (filmStorage.getFilmById(filmId).isEmpty()) {
             throw new NotFoundException("Фильма с таким идентификатором id " + filmId + " не существует!");
         }
         return filmStorage.getFilmById(filmId).get();
+    }
+
+    public boolean validateFilmData(Film film) {
+        if (film.getReleaseDate().isBefore(MINIMAL_RELEASE_DATE)) { // Примерно, если вы хотите ограничить минимальную дату
+            throw new ConditionsNotMetException("Дата релиза должна быть указана и не может быть ранее 28 декабря 1895 года!");
+        }
+
+        if (jdbcMpaRepository.getById(film.getMpa().getId()).isEmpty()) {
+            throw new ConditionsNotMetException("MPA-рейтинг должен быть указан и существовать в системе!");
+        }
+
+//        SqlParameterSource parameterSource = new MapSqlParameterSource()
+
+
+        if (film.getGenres() != null) {
+            for (Genre genre : film.getGenres()) {
+                if (jdbcGenreRepository.getById((int) genre.getId()).isEmpty()) {
+                    throw new ConditionsNotMetException("Жанр с ID " + genre.getId() + " не найден!");
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean areAllGenresValid(Film film) {
+        if (film.getGenres() == null || film.getGenres().isEmpty()) {
+            return true;
+        }
+
+        // Извлекаем все ID жанров из коллекции Film
+        List<Long> genreIds = film.getGenres().stream()
+                .map(Genre::getId)
+                .collect(Collectors.toList());
+
+        // SQL-запрос, который считает количество жанров с нужными ID
+        String sql = "SELECT COUNT(*) FROM genres WHERE genre_id IN (:genreIds)";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource("genreIds", genreIds);
+
+        // Получаем количество найденных жанров
+        int count = jdbcTemplate.queryForObject(sql, parameters, Integer.class);
+
+        // Сравниваем количество найденных жанров с размером коллекции жанров в фильме
+        return count == genreIds.size();
     }
 
 

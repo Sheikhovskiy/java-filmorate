@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -13,22 +12,25 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserStorage userStorage;
     private final FriendRepository friendRepository;
 
-    @Autowired
-    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, FriendRepository friendRepository) {
-        this.userStorage = userStorage;
-        this.friendRepository = friendRepository;
-    }
+//    @Autowired
+//    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, FriendRepository friendRepository) {
+//        this.userStorage = userStorage;
+//        this.friendRepository = friendRepository;
+//    }
 
     public User create(User user) {
+        validateUserData(user);
         return userStorage.create(user);
     }
 
     public User update(User user) {
+        validateUserData(user);
         return userStorage.update(user);
     }
 
@@ -37,6 +39,7 @@ public class UserService {
     }
 
     public User delete(User user) {
+        validateUserData(user);
         return userStorage.delete(user);
     }
 
@@ -128,6 +131,13 @@ public class UserService {
         friendRepository.removeFriend(userId, friendId);
 
         return friendOptional.get();
+    }
+
+    private void validateUserData(User user) {
+
+        if (user.getLogin().contains(" ")) {
+            throw new ConditionsNotMetException("Логин должен быть указан!");
+        }
     }
 
 }

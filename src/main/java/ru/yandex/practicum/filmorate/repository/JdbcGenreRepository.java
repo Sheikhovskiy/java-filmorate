@@ -3,10 +3,17 @@ package ru.yandex.practicum.filmorate.repository;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.function.UnaryOperator.identity;
+import static org.zalando.logbook.core.BodyReplacers.stream;
 
 @Repository
 public class JdbcGenreRepository implements GenreRepository {
@@ -52,24 +59,30 @@ public class JdbcGenreRepository implements GenreRepository {
     }
 
     @Override
-    public Optional<String> getName(int id) {
-        String sql = "SELECT name FROM genres WHERE genre_id = :id";
-        MapSqlParameterSource params = new MapSqlParameterSource("id", id);
-        return jdbcTemplate.query(sql, params, rs -> {
-            if (rs.next()) {
-                return Optional.of(rs.getString("name"));
-            } else {
-                return Optional.empty();
-            }
-        });
+    public void load(List<Film> films) {
+
     }
 
+
 //    @Override
-//    public boolean existsById(long id) {
-//        String sql = "SELECT COUNT(*) FROM genres WHERE genre_id = :id";
-//        MapSqlParameterSource params = new MapSqlParameterSource("id", id);
-//        Integer count = jdbcTemplate.queryForObject(sql, params, Integer.class);
-//        return count != null && count > 0;
+//    public void load(List<Film> films) {
+//        final Map<Integer, Film> filmById = films.stream()
+//                .collect(Collectors.toMap(Film::getId, identity()));
+//
+//        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
+//        final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
+//                "FROM genres AS g " +
+//                "INNER JOIN films_genres AS fg ON g.genre_id = fg.genre_id " +
+//                "WHERE fg.film_id IN (" + inSql + ")";
+//
+//        jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
+//            Film film = filmById.get(rs.getInteger("film_id"));
+//            if (film != null) {
+//                film.addGenre(new Genre(rs.getLong("genre_id"), rs.getString("name")));
+//            }
+//            return film;
+//        }, films.stream().map(Film::getId).toArray());
 //    }
+
 
 }

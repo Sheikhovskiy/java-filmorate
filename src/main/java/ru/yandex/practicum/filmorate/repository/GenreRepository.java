@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.util.List;
@@ -13,9 +14,7 @@ public interface GenreRepository {
 
     List<Genre> getGenresByFilmId(int filmId);
 
-    Optional<String> getName(int id);
+    void load(List<Film> films);
 
-//    void saveFilmGenres(int filmId, List<Genre> genres);
 
-//    boolean existsById(long id);
 }

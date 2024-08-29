@@ -27,7 +27,7 @@ public class GenreController {
     }
 
     @GetMapping("/{id}")
-    public Genre getGenreById(@PathVariable Integer id) {
+    public Genre getById(@PathVariable Integer id) {
         return genreService.getGenreById(id);
     }
 

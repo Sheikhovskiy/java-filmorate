@@ -15,7 +15,6 @@ import java.util.Set;
 
 @Data
 @NoArgsConstructor
-@Component
 public class Film {
 
     private Integer id;
@@ -36,7 +35,7 @@ public class Film {
 
     private LinkedHashSet<Genre> genres;
 
+    @NotNull
     private Mpa mpa;
 
-    private Set<Integer> likes = new HashSet<>();
 }
