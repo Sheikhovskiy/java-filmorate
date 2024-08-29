@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.repository.JdbcFilmRepository;
 import ru.yandex.practicum.filmorate.repository.JdbcGenreRepository;
 import ru.yandex.practicum.filmorate.repository.JdbcMpaRepository;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Optional;
 
