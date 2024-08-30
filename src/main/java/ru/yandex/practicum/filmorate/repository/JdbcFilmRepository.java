@@ -14,11 +14,9 @@ import ru.yandex.practicum.filmorate.model.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.function.UnaryOperator.identity;
 
 @Slf4j
 @Repository
@@ -176,14 +174,12 @@ public class JdbcFilmRepository implements FilmRepository {
         MapSqlParameterSource params = new MapSqlParameterSource("count", count);
         List<Film> films = jdbcTemplate.query(getMostPopularFilmsQuery, params, (rs, rowNum) -> mapRowToFilm(rs));
 
-//        for (Film film : films) {
-//            film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
-//        }
+//        genreRepository.load(films);
+
+        for (Film film : films) {
+            film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
+        }
 //        // load(films)
-
-
-
-
         return films;
     }
 

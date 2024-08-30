@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -9,16 +10,17 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.JdbcGenreRepository;
 import ru.yandex.practicum.filmorate.repository.JdbcMpaRepository;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class FilmService  {
@@ -27,11 +29,12 @@ public class FilmService  {
 
     private final UserStorage userStorage;
 
+    private final GenreStorage genreStorage;
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final JdbcMpaRepository jdbcMpaRepository;
 
-    private final JdbcGenreRepository jdbcGenreRepository;
 
     private static final LocalDate MINIMAL_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
@@ -50,6 +53,8 @@ public class FilmService  {
     }
 
     public Collection<Film> getAll() {
+//        List<Film> films = (List<Film>) filmStorage.getAll();
+//        jdbcGenreRepository.load(films);
         return filmStorage.getAll();
     }
 
@@ -57,6 +62,26 @@ public class FilmService  {
         validateFilmData(film);
 
         return filmStorage.delete(film);
+    }
+
+
+    public Collection<Film> getMostPopularFilms(Integer size) {
+//        List<Film> films = (List<Film>) filmStorage.getAll();
+//        jdbcGenreRepository.load(films);
+//        return films;
+
+        return ((FilmDbStorage) filmStorage).getMostPopularFilms(size);
+    }
+
+    public Film getFilmById(Integer filmId) {
+        if (filmStorage.getFilmById(filmId).isEmpty()) {
+            throw new NotFoundException("Фильма с таким идентификатором id " + filmId + " не существует!");
+        }
+        Film film = filmStorage.getFilmById(filmId).get();
+//        genreStorage.load(List.of(film));
+//        return film;
+        //log.info("ВООООООТ " + String.valueOf(film));
+        return film;
     }
 
 
@@ -88,16 +113,7 @@ public class FilmService  {
     }
 
 
-    public Collection<Film> getMostPopularFilms(Integer size) {
-        return ((FilmDbStorage) filmStorage).getMostPopularFilms(size);
-    }
 
-    public Film getFilmById(Integer filmId) {
-        if (filmStorage.getFilmById(filmId).isEmpty()) {
-            throw new NotFoundException("Фильма с таким идентификатором id " + filmId + " не существует!");
-        }
-        return filmStorage.getFilmById(filmId).get();
-    }
 
     public boolean validateFilmData(Film film) {
         if (film.getReleaseDate().isBefore(MINIMAL_RELEASE_DATE)) { // Примерно, если вы хотите ограничить минимальную дату
@@ -111,7 +127,7 @@ public class FilmService  {
 
         if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
-                if (jdbcGenreRepository.getById((int) genre.getId()).isEmpty()) {
+                if (genreStorage.getById((int) genre.getId()).isEmpty()) {
                     throw new ConditionsNotMetException("Жанр с ID " + genre.getId() + " не найден!");
                 }
             }
