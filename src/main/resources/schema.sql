@@ -4,14 +4,14 @@
 --DELETE FROM films;
 --DELETE FROM genres;
 --DELETE FROM mpa;
---
---DROP TABLE IF EXISTS friends;
---DROP TABLE IF EXISTS film_likes;
---DROP TABLE IF EXISTS film_genres;
---DROP TABLE IF EXISTS films;
---DROP TABLE IF EXISTS genres;
---DROP TABLE IF EXISTS mpa;
---DROP TABLE IF EXISTS users;
+
+DROP TABLE IF EXISTS friends;
+DROP TABLE IF EXISTS film_likes;
+DROP TABLE IF EXISTS film_genres;
+DROP TABLE IF EXISTS films;
+DROP TABLE IF EXISTS genres;
+DROP TABLE IF EXISTS mpa;
+DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -66,4 +66,17 @@ CREATE TABLE IF NOT EXISTS film_likes (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-
+--DELETE FROM friends;
+--DELETE FROM film_likes;
+--DELETE FROM film_genres;
+--DELETE FROM films;
+--DELETE FROM genres;
+--DELETE FROM mpa;
+--
+--DROP TABLE IF EXISTS friends;
+--DROP TABLE IF EXISTS film_likes;
+--DROP TABLE IF EXISTS film_genres;
+--DROP TABLE IF EXISTS films;
+--DROP TABLE IF EXISTS genres;
+--DROP TABLE IF EXISTS mpa;
+--DROP TABLE IF EXISTS users;

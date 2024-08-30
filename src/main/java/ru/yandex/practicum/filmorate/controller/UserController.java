@@ -16,13 +16,6 @@ public class UserController {
 
     private final UserService userService;
 
-//    @Autowired
-//    public UserController(UserService userService) {
-//        this.userService = userService;
-//    }
-
-
-
     @PostMapping
     public User create(@Valid @RequestBody User user) {
         return userService.create(user);

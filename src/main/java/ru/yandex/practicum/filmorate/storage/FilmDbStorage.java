@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @Slf4j
 @Component
-//@Qualifier("FilmDbStorage")
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcFilmRepository jdbcFilmRepository;

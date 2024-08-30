@@ -1,13 +1,19 @@
 package ru.yandex.practicum.filmorate.repository;
 
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.util.function.UnaryOperator.identity;
 
 @Repository
 public class JdbcGenreRepository implements GenreRepository {
@@ -54,29 +60,26 @@ public class JdbcGenreRepository implements GenreRepository {
 
     @Override
     public void load(List<Film> films) {
+        final Map<Integer, Film> filmById = films.stream()
+                .collect(Collectors.toMap(Film::getId, identity()));
 
+        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
+        final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
+                "FROM genres AS g " +
+                "INNER JOIN films_genres AS fg ON g.genre_id = fg.genre_id " +
+                "WHERE fg.film_id IN (" + inSql + ")";
+
+        JdbcTemplate jdbcTemplateNonNamed = new JdbcTemplate();
+
+
+        jdbcTemplateNonNamed.query(sqlQuery, (rs, rowNum) -> {
+            Film film = filmById.get(rs.getInt("film_id"));
+            if (film != null) {
+                film.getGenres().add(new Genre(rs.getLong("genre_id"), rs.getString("name")));
+            }
+            return film;
+        }, films.stream().map(Film::getId).toArray());
     }
-
-
-//    @Override
-//    public void load(List<Film> films) {
-//        final Map<Integer, Film> filmById = films.stream()
-//                .collect(Collectors.toMap(Film::getId, identity()));
-//
-//        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
-//        final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
-//                "FROM genres AS g " +
-//                "INNER JOIN films_genres AS fg ON g.genre_id = fg.genre_id " +
-//                "WHERE fg.film_id IN (" + inSql + ")";
-//
-//        jdbcTemplate.query(sqlQuery, (rs, rowNum) -> {
-//            Film film = filmById.get(rs.getInteger("film_id"));
-//            if (film != null) {
-//                film.addGenre(new Genre(rs.getLong("genre_id"), rs.getString("name")));
-//            }
-//            return film;
-//        }, films.stream().map(Film::getId).toArray());
-//    }
 
 
 }

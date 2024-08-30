@@ -36,11 +36,6 @@ public class FilmService  {
     private static final LocalDate MINIMAL_RELEASE_DATE = LocalDate.of(1895, 12, 28);
 
 
-//        @Autowired
-//    public FilmService(@Qualifier("FilmDbStorage") FilmStorage filmStorage, @Qualifier("UserDbStorage") UserStorage userStorage) {
-//        this.filmStorage = filmStorage;
-//        this.userStorage = userStorage;
-//    }
 
     public Film create(Film film) {
         validateFilmData(film);
@@ -113,8 +108,6 @@ public class FilmService  {
             throw new ConditionsNotMetException("MPA-рейтинг должен быть указан и существовать в системе!");
         }
 
-//        SqlParameterSource parameterSource = new MapSqlParameterSource()
-
 
         if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
@@ -127,25 +120,22 @@ public class FilmService  {
         return true;
     }
 
+
     private boolean areAllGenresValid(Film film) {
         if (film.getGenres() == null || film.getGenres().isEmpty()) {
             return true;
         }
 
-        // Извлекаем все ID жанров из коллекции Film
         List<Long> genreIds = film.getGenres().stream()
                 .map(Genre::getId)
                 .collect(Collectors.toList());
 
-        // SQL-запрос, который считает количество жанров с нужными ID
         String sql = "SELECT COUNT(*) FROM genres WHERE genre_id IN (:genreIds)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource("genreIds", genreIds);
 
-        // Получаем количество найденных жанров
         int count = jdbcTemplate.queryForObject(sql, parameters, Integer.class);
 
-        // Сравниваем количество найденных жанров с размером коллекции жанров в фильме
         return count == genreIds.size();
     }
 

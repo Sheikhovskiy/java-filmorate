@@ -18,6 +18,8 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.function.UnaryOperator.identity;
+
 @Slf4j
 @Repository
 @RequiredArgsConstructor
@@ -28,12 +30,7 @@ public class JdbcFilmRepository implements FilmRepository {
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
 
-//    @Autowired
-//    public JdbcFilmRepository(NamedParameterJdbcTemplate jdbcTemplate, MpaRepository mpaRepository, GenreRepository genreRepository) {
-//        this.jdbcTemplate = jdbcTemplate;
-//        this.mpaRepository = mpaRepository;
-//        this.genreRepository = genreRepository;
-//    }
+
 
 
     public Film create(Film film) {
@@ -179,34 +176,19 @@ public class JdbcFilmRepository implements FilmRepository {
         MapSqlParameterSource params = new MapSqlParameterSource("count", count);
         List<Film> films = jdbcTemplate.query(getMostPopularFilmsQuery, params, (rs, rowNum) -> mapRowToFilm(rs));
 
-        for (Film film : films) {
-            film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
-        }
+//        for (Film film : films) {
+//            film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
+//        }
+//        // load(films)
+
+
+
 
         return films;
     }
 
 
 
-
-
-
-    public Optional<Film> getFilmByNameAndReleaseDate(String name, LocalDate releaseDate) {
-        String sql = "SELECT film_id, name, release_date FROM films WHERE name = :name AND release_date = :releaseDate";
-        MapSqlParameterSource params = new MapSqlParameterSource();
-        params.addValue("name", name);
-        params.addValue("releaseDate", releaseDate);
-
-        List<Film> films = jdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            Film film = new Film();
-            film.setId(rs.getInt("film_id"));
-            film.setName(rs.getString("name"));
-            film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-            return film;
-        });
-
-        return films.isEmpty() ? Optional.empty() : Optional.of(films.get(0));
-    }
 
 
     private Film mapRowToFilm(ResultSet rs) throws SQLException {
@@ -218,7 +200,6 @@ public class JdbcFilmRepository implements FilmRepository {
         film.setDuration(rs.getInt("duration"));
         film.setMpa(mpaRepository.getById(rs.getInt("mpa_id")).orElseThrow(() -> new NotFoundException("MPA не найден")));
 
-        // Подгружаем жанры, если они есть
         Set<Genre> genres = new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId()));
         if (!genres.isEmpty()) {
             film.setGenres((LinkedHashSet<Genre>) genres);
