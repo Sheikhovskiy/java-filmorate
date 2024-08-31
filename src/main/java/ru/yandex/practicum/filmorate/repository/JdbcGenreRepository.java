@@ -23,7 +23,7 @@ public class JdbcGenreRepository implements GenreRepository {
     private final JdbcTemplate jdbcTemplateNonNamed;
 
 
-    public JdbcGenreRepository(NamedParameterJdbcTemplate jdbcTemplate, JdbcTemplate jdbcTemplateNonNamed ) {
+    public JdbcGenreRepository(NamedParameterJdbcTemplate jdbcTemplate, JdbcTemplate jdbcTemplateNonNamed) {
         this.jdbcTemplate = jdbcTemplate;
         this.jdbcTemplateNonNamed = jdbcTemplateNonNamed;
     }
