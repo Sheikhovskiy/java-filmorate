@@ -53,9 +53,8 @@ public class FilmService  {
     }
 
     public Collection<Film> getAll() {
-//        List<Film> films = (List<Film>) filmStorage.getAll();
-//        jdbcGenreRepository.load(films);
         return filmStorage.getAll();
+
     }
 
     public Film delete(Film film) {
@@ -66,10 +65,6 @@ public class FilmService  {
 
 
     public Collection<Film> getMostPopularFilms(Integer size) {
-//        List<Film> films = (List<Film>) filmStorage.getAll();
-//        jdbcGenreRepository.load(films);
-//        return films;
-
         return ((FilmDbStorage) filmStorage).getMostPopularFilms(size);
     }
 
@@ -78,9 +73,6 @@ public class FilmService  {
             throw new NotFoundException("Фильма с таким идентификатором id " + filmId + " не существует!");
         }
         Film film = filmStorage.getFilmById(filmId).get();
-//        genreStorage.load(List.of(film));
-//        return film;
-        //log.info("ВООООООТ " + String.valueOf(film));
         return film;
     }
 

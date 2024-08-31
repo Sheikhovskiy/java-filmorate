@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.service.GenreService;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,8 +26,12 @@ import java.util.stream.Collectors;
 public class JdbcFilmRepository implements FilmRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+
     private final MpaRepository mpaRepository;
+
     private final GenreRepository genreRepository;
+
+    private final GenreService genreService;
 
 
 
@@ -62,8 +67,7 @@ public class JdbcFilmRepository implements FilmRepository {
         Film film = jdbcTemplate.query(query, params, rs -> {
             if (rs.next()) {
                 Film tempFilm = mapRowToFilm(rs);
-                // Подгружаем жанры для фильма
-                tempFilm.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(tempFilm.getId())));
+                tempFilm.setGenres(new LinkedHashSet<>(genreService.getGenresByFilmId(tempFilm.getId())));
                 return tempFilm;
             } else {
                 return null;
@@ -120,9 +124,7 @@ public class JdbcFilmRepository implements FilmRepository {
         String query = "SELECT * FROM films";
         List<Film> films = jdbcTemplate.query(query, (rs, rowNum) -> mapRowToFilm(rs));
 
-        for (Film film : films) {
-            film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
-        }
+        genreService.load(films);
 
         return films;
     }
@@ -174,12 +176,7 @@ public class JdbcFilmRepository implements FilmRepository {
         MapSqlParameterSource params = new MapSqlParameterSource("count", count);
         List<Film> films = jdbcTemplate.query(getMostPopularFilmsQuery, params, (rs, rowNum) -> mapRowToFilm(rs));
 
-//        genreRepository.load(films);
-
-        for (Film film : films) {
-            film.setGenres(new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId())));
-        }
-//        // load(films)
+        genreService.load(films);
         return films;
     }
 
@@ -196,7 +193,7 @@ public class JdbcFilmRepository implements FilmRepository {
         film.setDuration(rs.getInt("duration"));
         film.setMpa(mpaRepository.getById(rs.getInt("mpa_id")).orElseThrow(() -> new NotFoundException("MPA не найден")));
 
-        Set<Genre> genres = new LinkedHashSet<>(genreRepository.getGenresByFilmId(film.getId()));
+        Set<Genre> genres = new LinkedHashSet<>(genreService.getGenresByFilmId(film.getId()));
         if (!genres.isEmpty()) {
             film.setGenres((LinkedHashSet<Genre>) genres);
         }

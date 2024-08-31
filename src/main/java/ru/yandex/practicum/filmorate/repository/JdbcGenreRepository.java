@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -19,12 +20,12 @@ import static java.util.function.UnaryOperator.identity;
 public class JdbcGenreRepository implements GenreRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplateNonNamed;
 
-//    @Autowired
-//    private JdbcTemplate jdbcTemplateNonNamed;
 
-    public JdbcGenreRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+    public JdbcGenreRepository(NamedParameterJdbcTemplate jdbcTemplate, JdbcTemplate jdbcTemplateNonNamed ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.jdbcTemplateNonNamed = jdbcTemplateNonNamed;
     }
 
     @Override
@@ -64,28 +65,42 @@ public class JdbcGenreRepository implements GenreRepository {
 
     @Override
     public void load(List<Film> films) {
+        log.info(String.valueOf(films.size()));
+
+
+        if (films.isEmpty()) {
+            log.info("films empty");
+            return;
+        }
+
         final Map<Integer, Film> filmById = films.stream()
                 .collect(Collectors.toMap(Film::getId, identity()));
-
-        log.info(String.valueOf(films.size()));
-        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
-
-        final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
-                "FROM genres AS g " +
-                "INNER JOIN films_genres AS fg ON g.genre_id = fg.genre_id " +
-                "WHERE fg.film_id IN (" + inSql + ")";
-
-        Map<String, Object> params = new HashMap<>();
-        params.put("filmIds", films.stream().map(Film::getId).collect(Collectors.toList()));
+        log.info("filmById: " + filmById);
 
 
-        jdbcTemplate.query(sqlQuery, params, (ResultSet rs, int rowNum) -> {
-            final Film film = filmById.get(rs.getLong("film_id"));
-            if (film != null) {
-                film.getGenres().add(makeGenre(rs, rowNum));
-            }
-            return film;
-        });
+        List<Integer> filmsIds = films.stream().map(Film::getId).collect(Collectors.toList());
+        log.info("filmIds: " + filmsIds);
+
+        if (filmsIds.isEmpty()) {
+            log.info("filmIds empty");
+            return;
+        }
+
+
+            String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
+            log.info(inSql);
+
+            final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
+                    "FROM genres AS g " +
+                    "INNER JOIN film_genres AS fg ON g.genre_id = fg.genre_id " +
+                    "WHERE fg.film_id IN (" + inSql + ")";
+
+            jdbcTemplateNonNamed.query(sqlQuery, (rs, rowNum) -> {
+                final Film film = filmById.get(rs.getInt("film_id"));
+                film.getGenres().add(makeGenre(rs, 0));
+                return film;
+            }, films.stream().map(Film::getId).toArray());
+
     }
 
 
