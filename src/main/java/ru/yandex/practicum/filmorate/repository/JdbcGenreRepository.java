@@ -47,7 +47,7 @@ public class JdbcGenreRepository implements GenreRepository {
         if (genres.isEmpty()) {
             return Optional.empty();
         } else {
-            return Optional.of(genres.get(0));
+            return Optional.of(genres.getFirst());
         }
     }
 

@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
+import ru.yandex.practicum.filmorate.service.MpaService;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,9 +28,7 @@ public class JdbcFilmRepository implements FilmRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final MpaRepository mpaRepository;
-
-    private final GenreRepository genreRepository;
+    private final MpaService mpaService;
 
     private final GenreService genreService;
 
@@ -191,7 +190,7 @@ public class JdbcFilmRepository implements FilmRepository {
         film.setDescription(rs.getString("description"));
         film.setReleaseDate(rs.getDate("release_date").toLocalDate());
         film.setDuration(rs.getInt("duration"));
-        film.setMpa(mpaRepository.getById(rs.getInt("mpa_id")).orElseThrow(() -> new NotFoundException("MPA не найден")));
+        film.setMpa(mpaService.getMpaById(rs.getInt("mpa_id")));
 
         Set<Genre> genres = new LinkedHashSet<>(genreService.getGenresByFilmId(film.getId()));
         if (!genres.isEmpty()) {

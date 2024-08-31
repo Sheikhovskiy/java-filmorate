@@ -18,4 +18,6 @@ public class Mpa {
         this.id = mpaId;
         this.name = name;
     }
+
+
 }
