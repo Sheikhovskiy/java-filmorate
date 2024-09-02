@@ -1,25 +1,23 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.constraints.Positive;
+import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
+import java.util.Optional;
 
-
+@Validated
 @RestController
+@RequiredArgsConstructor // Вместо конструктора FilmController(FilmService fs) генерирует конструктор для класса, принимающий все final поля и поля с аннотацией @NonNull.
 @RequestMapping("/films")
 public class FilmController {
 
-    @Autowired
     private final FilmService filmService;
-
-    @Autowired
-    FilmController(FilmService filmService) {
-        this.filmService = filmService;
-    }
 
     @PostMapping
     public Film create(@Valid @RequestBody Film film) {
@@ -42,18 +40,23 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Film likeFilmByUserId(@PathVariable Integer id, @PathVariable Integer userId) {
+    public Optional<Film> likeFilmByUserId(@PathVariable Integer id, @PathVariable Integer userId) {
         return filmService.likeFilmByUserId(id, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public Film unlikeFilmByUserId(@PathVariable Integer id, @PathVariable Integer userId) {
+    public Optional<Film> unlikeFilmByUserId(@PathVariable Integer id, @PathVariable Integer userId) {
         return filmService.unlikeFilmByUserId(id, userId);
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getMostPopularFilms(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<Film> getMostPopular(@Positive @RequestParam(defaultValue = "10") Integer count) {
         return filmService.getMostPopularFilms(count);
+    }
+
+    @GetMapping("/{id}")
+    public Film getById(@PathVariable Integer id) {
+        return filmService.getFilmById(id);
     }
 
 }

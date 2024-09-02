@@ -6,15 +6,12 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 @Data
 @NoArgsConstructor
-@Component
 public class Film {
 
     private Integer id;
@@ -33,7 +30,9 @@ public class Film {
     @Positive
     private Integer duration;
 
-    private Set<Integer> likes = new HashSet<>();
+    private LinkedHashSet<Genre> genres;
 
+    @NotNull
+    private Mpa mpa;
 
 }

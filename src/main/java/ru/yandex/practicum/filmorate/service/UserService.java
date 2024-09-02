@@ -1,32 +1,36 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.repository.FriendRepository;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
+    private final FriendRepository friendRepository;
 
-    @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
-    }
+//    @Autowired
+//    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, FriendRepository friendRepository) {
+//        this.userStorage = userStorage;
+//        this.friendRepository = friendRepository;
+//    }
 
     public User create(User user) {
+        validateUserData(user);
         return userStorage.create(user);
     }
 
     public User update(User user) {
+        validateUserData(user);
         return userStorage.update(user);
     }
 
@@ -35,96 +39,105 @@ public class UserService {
     }
 
     public User delete(User user) {
+        validateUserData(user);
         return userStorage.delete(user);
     }
 
-
-    public User addFriend(User user, User userToAdd) {
-
-        if (!isUserValid(user) || !isUserValid(userToAdd)) {
-            throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
+    public void addFriend(int userId, int friendId) {
+        if (userId < 1 || friendId < 1) {
+            throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
         }
 
-        user.getFriends().add(userToAdd.getId());
-        userToAdd.getFriends().add(user.getId());
+        Optional<User> userOptional = userStorage.getUserById(userId);
+        Optional<User> friendOptional = userStorage.getUserById(friendId);
 
-        return userToAdd;
-    }
-
-    public User deleteFriend(User user, User userToRemove) {
-        if (!isUserValid(user) || !isUserValid(userToRemove)) {
-            throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
+        if (userOptional.isEmpty() || friendOptional.isEmpty()) {
+            throw new NotFoundException("Пользователь не найден");
         }
 
-        user.getFriends().remove(userToRemove.getId());
-        userToRemove.getFriends().remove(user.getId());
-
-        return userToRemove;
+        friendRepository.addFriend(userId, friendId);
     }
 
-
-    public User addUserFriendById(Integer userId, Integer friendId) {
-
-        if (userId < 0 || friendId < 0) {
-            throw new ConditionsNotMetException("У пользователей id должен быть положительным");
+    public void removeFriend(int userId, int friendId) {
+        if (userId < 1 || friendId < 1) {
+            throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
         }
 
-        User user = userStorage.getUserById(userId);
-        User userFriend = userStorage.getUserById(friendId);
+        Optional<User> userOptional = userStorage.getUserById(userId);
+        Optional<User> friendOptional = userStorage.getUserById(friendId);
 
-        if (user == null || userFriend == null) {
-            throw new NotFoundException("Пользователь(и) не найдены в базе данных");
+        if (userOptional.isEmpty() || friendOptional.isEmpty()) {
+            throw new NotFoundException("Пользователь не найден");
         }
-        addFriend(user, userFriend);
-        return userFriend;
+
+        friendRepository.removeFriend(userId, friendId);
     }
 
-
-    public User deleteUserFriendById(Integer userId, Integer friendId) {
-        if (userId < 0 || friendId < 0) {
-            throw new ConditionsNotMetException("У пользователей id должен быть положительным");
+    public Collection<User> getAllFriendsByUserId(int userId) {
+        if (userId < 1) {
+            throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
         }
-        User user = userStorage.getUserById(userId);
-        User userFriend = userStorage.getUserById(friendId);
 
-        if (user == null || userFriend == null) {
-            throw new NotFoundException("Пользователь(и) не найдены в базе данных");
+        Optional<User> optionalUser = userStorage.getUserById(userId);
+
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException("Пользователь с id " + userId + " не найден");
         }
-        deleteFriend(user, userFriend);
-        return userFriend;
+
+        return friendRepository.getFriends(userId);
     }
 
-
-    public Collection<User> getAllFriendsByUserId(Integer userId) {
-        List<Integer> userFriendsId = new ArrayList<>(getUserFriends(userStorage.getUserById(userId)));
-
-        return userFriendsId.stream()
-                .map(id -> userStorage.getUserById(id))
-                .collect(Collectors.toList());
-
-    }
-
-
-    public Collection<User> getCommonFriendsOfTwoUsers(Integer userId, Integer otherUserId) {
-
-        List<User> userFriends = (List<User>) getAllFriendsByUserId(userId);
-        List<User> otherUserFriends = (List<User>) getAllFriendsByUserId(otherUserId);
-
-        return userFriends.stream()
-                .filter(user -> otherUserFriends.contains(user))
-                .toList();
-    }
-
-
-    public Collection<Integer> getUserFriends(User user) {
-        if (!isUserValid(user)) {
-            throw new ConditionsNotMetException("У пользователя id должен быть положительным числом");
+    public Collection<User> getCommonFriendsOfTwoUsers(int userId, int otherUserId) {
+        if (userId < 1 || otherUserId < 1) {
+            throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
         }
-        return user.getFriends();
-    }
 
+        return friendRepository.getCommonFriends(userId, otherUserId);
+    }
 
     public boolean isUserValid(User user) {
         return user.getId() > 0;
     }
+
+    public User addUserFriendById(Integer userId, Integer friendId) {
+        if (userId < 1 || friendId < 1) {
+            throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
+        }
+
+        Optional<User> userOptional = userStorage.getUserById(userId);
+        Optional<User> friendOptional = userStorage.getUserById(friendId);
+
+        if (userOptional.isEmpty() || friendOptional.isEmpty()) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+
+        friendRepository.addFriend(userId, friendId);
+
+        return friendOptional.get();
+    }
+
+    public User deleteUserFriendById(Integer userId, Integer friendId) {
+        if (userId < 1 || friendId < 1) {
+            throw new ConditionsNotMetException("Идентификатор пользователя должен быть положительным числом");
+        }
+
+        Optional<User> userOptional = userStorage.getUserById(userId);
+        Optional<User> friendOptional = userStorage.getUserById(friendId);
+
+        if (userOptional.isEmpty() || friendOptional.isEmpty()) {
+            throw new NotFoundException("Пользователь не найден");
+        }
+
+        friendRepository.removeFriend(userId, friendId);
+
+        return friendOptional.get();
+    }
+
+    private void validateUserData(User user) {
+
+        if (user.getLogin().contains(" ")) {
+            throw new ConditionsNotMetException("Логин должен быть указан!");
+        }
+    }
+
 }
