@@ -18,12 +18,6 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendRepository friendRepository;
 
-//    @Autowired
-//    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage, FriendRepository friendRepository) {
-//        this.userStorage = userStorage;
-//        this.friendRepository = friendRepository;
-//    }
-
     public User create(User user) {
         validateUserData(user);
         return userStorage.create(user);

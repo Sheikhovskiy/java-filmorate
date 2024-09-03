@@ -15,13 +15,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-//ResultSet предоставляет данные, извлеченные из базы данных в виде таблицы, с которой можно работать построчно.
-//Метод mapRowToUser преобразует одну строку данных из ResultSet в объект User.
 
-
-//  user_id: Это имя столбца в базе данных.
-// "id": Это имя параметра, которое используется для замены в SQL-запросе.
-//  id: Это значение переменной, которое будет подставлено в запрос вместо :id.
 @Repository
 @Qualifier("userDbStorage")
 public class JdbcUserRepository implements UserRepository {

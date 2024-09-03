@@ -51,23 +51,12 @@ public class JdbcGenreRepository implements GenreRepository {
         }
     }
 
-    @Override
-    public List<Genre> getGenresByFilmId(int filmId) {
-        String sql = "SELECT genres.genre_id, genres.name FROM genres " +
-                "INNER JOIN film_genres ON genres.genre_id = film_genres.genre_id " +
-                "WHERE film_genres.film_id = :filmId";
-        MapSqlParameterSource params = new MapSqlParameterSource("filmId", filmId);
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
-            return new Genre(rs.getLong("genre_id"), rs.getString("name"));
-        });
-    }
-
 
     @Override
     public void load(List<Film> films) {
         log.info(String.valueOf(films.size()));
 
-
+        try {
         if (films.isEmpty()) {
             log.info("films empty");
             return;
@@ -87,21 +76,28 @@ public class JdbcGenreRepository implements GenreRepository {
         }
 
 
-            String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
-            log.info(inSql);
+        String inSql = String.join(",", Collections.nCopies(films.size(), "?"));
+        log.info(inSql);
 
-            final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
-                    "FROM genres AS g " +
-                    "INNER JOIN film_genres AS fg ON g.genre_id = fg.genre_id " +
-                    "WHERE fg.film_id IN (" + inSql + ")";
+        final String sqlQuery = "SELECT g.genre_id, g.name, fg.film_id " +
+                "FROM genres AS g " +
+                "INNER JOIN film_genres AS fg ON g.genre_id = fg.genre_id " +
+                "WHERE fg.film_id IN (" + inSql + ")";
 
-            jdbcTemplateNonNamed.query(sqlQuery, (rs, rowNum) -> {
-                final Film film = filmById.get(rs.getInt("film_id"));
-                film.getGenres().add(makeGenre(rs, 0));
-                return film;
-            }, films.stream().map(Film::getId).toArray());
+        jdbcTemplateNonNamed.query(sqlQuery, (rs, rowNum) -> {
+            final Film film = filmById.get(rs.getInt("film_id"));
+            film.getGenres().add(makeGenre(rs, 0));
+            return film;
+        }, films.stream().map(Film::getId).toArray());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
 
     }
+
+
 
 
     private Genre makeGenre(ResultSet rs, int rowNum) throws SQLException {

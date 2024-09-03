@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class User {
 
     private Integer id;

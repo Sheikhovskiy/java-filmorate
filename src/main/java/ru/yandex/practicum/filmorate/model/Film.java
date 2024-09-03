@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.util.LinkedHashSet;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode(of = "id")
 public class Film {
 
     private Integer id;
@@ -34,5 +36,4 @@ public class Film {
 
     @NotNull
     private Mpa mpa;
-
 }

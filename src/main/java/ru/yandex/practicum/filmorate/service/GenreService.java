@@ -33,7 +33,5 @@ public class GenreService {
         genreRepository.load(films);
     }
 
-    public List<Genre> getGenresByFilmId(Integer id) {
-        return genreRepository.getGenresByFilmId(id);
-    }
+
 }

@@ -25,10 +25,6 @@ public class GenreDbStorage implements GenreStorage {
         return jdbcGenreRepository.getById(id);
     }
 
-    @Override
-    public List<Genre> getGenresByFilmId(int filmId) {
-        return jdbcGenreRepository.getGenresByFilmId(filmId);
-    }
 
     @Override
     public void load(List<Film> films) {

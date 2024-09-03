@@ -12,10 +12,6 @@ public interface GenreRepository {
 
     Optional<Genre> getById(int id);
 
-    List<Genre> getGenresByFilmId(int filmId);
-
     void load(List<Film> films);
-
-
 
 }
